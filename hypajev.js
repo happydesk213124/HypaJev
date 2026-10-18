@@ -1,7 +1,7 @@
 //@name hypajev
 //@display-name HypaJev
 //@api 3.0
-//@version 0.0.1
+//@version 0.0.2
 //@update-url https://raw.githubusercontent.com/happydesk213124/HypaJev/main/hypajev.js
 //@arg jev_api_key string (선택) Jev API 키. 🧠 HypaJev 화면의 설정에서 넣어도 됩니다.
 
@@ -31,20 +31,38 @@
 
   // ── 프로바이더 ──
   const JEV_PRESETS = {
-    typesafe: { label: 'TypeSafe', desc: 'TypeSafe 콘솔에서 받은 키', endpoint: 'https://api.typesafe.ai/v1/systemone', model: 'jev-latest', keyUrl: 'https://typesafe.ai' },
-    openrouter: { label: 'OpenRouter', desc: 'OpenRouter 키 하나로 Jev와 임베딩을 같이', endpoint: 'https://openrouter.ai/api/v1/systemone', model: '~typesafe/jev-latest', keyUrl: 'https://openrouter.ai/keys' },
-    custom: { label: '직접 입력', desc: 'System One 형식을 받는 다른 주소', endpoint: '', model: '' },
+    openrouter: {
+      label: 'OpenRouter', badge: '추천', desc: 'OpenRouter 키 하나로 Jev와 임베딩을 같이 써요.', endpoint: 'https://openrouter.ai/api/v1/systemone', model: 'typesafe/jev-1.14', keyHint: 'sk-or-v1-…', keyUrl: 'https://openrouter.ai/keys',
+      models: [
+        { id: 'typesafe/jev-1.14', label: 'Jev 1.14' },
+        { id: '~typesafe/jev-latest', label: 'Jev 최신 (새 버전 나오면 자동으로 바뀜)' },
+        { id: 'typesafe/jev-1.13', label: 'Jev 1.13 (이전 버전)' },
+      ],
+    },
+    typesafe: {
+      label: 'TypeSafe 직결', desc: 'TypeSafe 콘솔에서 받은 키를 써요.', endpoint: 'https://api.typesafe.ai/v1/systemone', model: 'jev-latest', keyHint: 'TypeSafe API 키', keyUrl: 'https://console.typesafe.ai',
+      models: [
+        { id: 'jev-latest', label: 'Jev 최신 (새 버전 나오면 자동으로 바뀜)' },
+        { id: 'jev-1.14.0', label: 'Jev 1.14' },
+        { id: 'jev-1.13.0', label: 'Jev 1.13 (이전 버전)' },
+        { id: 'jev-preview', label: 'Jev 미리보기 (실험용)' },
+      ],
+    },
+    custom: { label: '직접 입력', desc: 'System One 형식을 받는 다른 주소.', endpoint: '', model: '', keyHint: 'API 키', models: [] },
   };
+
   const EMBED_PRESETS = {
-    voyage: { label: 'Voyage AI', desc: '검색 품질이 좋아요', format: 'openai', endpoint: 'https://api.voyageai.com/v1/embeddings', model: 'voyage-4-lite', key: 'own', keyUrl: 'https://dash.voyageai.com' },
-    openrouter: { label: 'OpenRouter', desc: 'Jev와 같은 OpenRouter 키', format: 'openai', endpoint: 'https://openrouter.ai/api/v1/embeddings', model: 'openai/text-embedding-3-small', key: 'jev' },
-    openai: { label: 'OpenAI', desc: 'OpenAI 키', format: 'openai', endpoint: 'https://api.openai.com/v1/embeddings', model: 'text-embedding-3-small', key: 'own' },
-    gemini: { label: 'Google Gemini', desc: '무료 한도가 넉넉해요', format: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-embedding-001', key: 'own' },
-    jina: { label: 'Jina AI', desc: '다국어에 강해요', format: 'openai', endpoint: 'https://api.jina.ai/v1/embeddings', model: 'jina-embeddings-v3', key: 'own' },
-    ollama: { label: 'Ollama (내 컴퓨터)', desc: '무료', format: 'ollama', endpoint: 'http://localhost:11434', model: 'bge-m3', key: 'none' },
-    local: { label: '무료 · API 없음', desc: '글자 조각으로 비슷한 정도를 계산. 표현이 다르면 놓쳐요', format: 'local', key: 'none' },
-    custom: { label: '직접 입력', desc: 'OpenAI 형식(/embeddings) 주소', format: 'openai', endpoint: '', model: '', key: 'own' },
+    openrouter: { label: 'OpenRouter', badge: 'Jev와 같은 키', desc: '키를 따로 넣을 필요가 없어요. 아주 싸요.', format: 'openai', endpoint: 'https://openrouter.ai/api/v1/embeddings', model: 'openai/text-embedding-3-small', models: ['openai/text-embedding-3-small', 'openai/text-embedding-3-large', 'qwen/qwen3-embedding-0.6b'], key: 'jev', mrl: true },
+    local: { label: '무료 · API 없음', badge: '설정 없음', desc: '글자 조각으로 비슷한 정도를 계산해요. 표현이 많이 다르면 놓쳐요.', format: 'local', key: 'none' },
+    openai: { label: 'OpenAI', desc: 'OpenAI 키를 써요.', format: 'openai', endpoint: 'https://api.openai.com/v1/embeddings', model: 'text-embedding-3-small', models: ['text-embedding-3-small', 'text-embedding-3-large'], key: 'own', mrl: true, keyUrl: 'https://platform.openai.com/api-keys' },
+    gemini: { label: 'Google Gemini', desc: '무료 한도가 넉넉해요.', format: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-embedding-001', models: ['gemini-embedding-001'], key: 'own', mrl: true, keyUrl: 'https://aistudio.google.com/apikey' },
+    voyage: { label: 'Voyage AI', desc: '검색 품질이 좋은 편이에요.', format: 'openai', endpoint: 'https://api.voyageai.com/v1/embeddings', model: 'voyage-4-lite', models: ['voyage-4-lite', 'voyage-4', 'voyage-4-large'], key: 'own', keyUrl: 'https://dashboard.voyageai.com' },
+    jina: { label: 'Jina AI', desc: '다국어에 강해요.', format: 'openai', endpoint: 'https://api.jina.ai/v1/embeddings', model: 'jina-embeddings-v3', models: ['jina-embeddings-v3'], key: 'own', keyUrl: 'https://jina.ai/api-dashboard' },
+    ollama: { label: 'Ollama', badge: '내 컴퓨터', desc: '내 컴퓨터에서 돌려요. 무료.', format: 'ollama', endpoint: 'http://localhost:11434', model: 'bge-m3', models: ['bge-m3', 'nomic-embed-text', 'mxbai-embed-large'], key: 'none' },
+    lmstudio: { label: 'LM Studio', badge: '내 컴퓨터', desc: '내 컴퓨터에서 돌려요. 무료.', format: 'openai', endpoint: 'http://localhost:1234/v1/embeddings', model: 'text-embedding-bge-m3', key: 'none' },
+    custom: { label: '직접 입력', desc: 'OpenAI 형식(/embeddings)을 받는 주소.', format: 'openai', endpoint: '', model: '', key: 'own' },
   };
+
 
   const RANK_LEVELS = ['unrelated', 'background only', 'useful context', 'answers or explains the latest message'];
   const SEARCH_NEEDS = {
@@ -67,9 +85,9 @@
   const SAVE_DELAY = 1500;
 
   const DEFAULT_SETTINGS = {
-    enabled: true,
-    jevPreset: 'typesafe', jevKey: '', jevEndpoint: '', jevModel: '',
-    embedPreset: 'voyage', embedKey: '', embedEndpoint: '', embedModel: '',
+    enabled: true, onboarded: false,
+    jevPreset: 'openrouter', jevKey: '', jevEndpoint: '', jevModel: '',
+    embedPreset: 'openrouter', embedKey: '', embedEndpoint: '', embedModel: '',
     budget: 600, candidates: 16, neighbor: 1, tailTokens: 120, indexPerSend: 100,
     injectMode: 'last_user', note: DEFAULT_NOTE, showButton: true,
   };
@@ -160,9 +178,11 @@
     const str = (v) => (typeof v === 'string' ? v.trim() : '');
     const out = {
       enabled: s.enabled !== false,
-      jevPreset: JEV_PRESETS[s.jevPreset] ? s.jevPreset : 'typesafe',
+      // 키를 이미 넣어 둔 사람은 시작 안내를 다시 띄우지 않는다
+      onboarded: s.onboarded === true || !!cleanKey(s.jevKey),
+      jevPreset: JEV_PRESETS[s.jevPreset] ? s.jevPreset : 'openrouter',
       jevKey: cleanKey(s.jevKey), jevEndpoint: str(s.jevEndpoint), jevModel: str(s.jevModel),
-      embedPreset: EMBED_PRESETS[s.embedPreset] ? s.embedPreset : 'voyage',
+      embedPreset: EMBED_PRESETS[s.embedPreset] ? s.embedPreset : 'openrouter',
       embedKey: cleanKey(s.embedKey), embedEndpoint: str(s.embedEndpoint), embedModel: str(s.embedModel),
       budget: clampNum(s.budget, 600, 0, 20000),
       candidates: clampNum(s.candidates, 16, 4, 80),
@@ -208,18 +228,18 @@
     } finally { clearTimeout(timer); }
   }
 
-  async function callJev(state, questions) {
-    const key = cleanKey(settings.jevKey);
+  async function callJev(state, questions, cfg = settings) {
+    const key = cleanKey(cfg.jevKey);
     const kp = keyProblem(key, 'Jev');
     if (kp) throw new Error(kp);
-    if (!settings.jevEndpoint || !settings.jevModel) throw new Error('Jev 주소나 모델이 비어 있어요.');
+    if (!cfg.jevEndpoint || !cfg.jevModel) throw new Error('Jev 주소나 모델이 비어 있어요.');
     const t = nowMs();
-    const init = { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify({ model: settings.jevModel, state, questions }) };
+    const init = { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify({ model: cfg.jevModel, state, questions }) };
     let lastError;
     for (let attempt = 0; attempt < 2; attempt++) {
       if (attempt) await new Promise(r => setTimeout(r, 800));
       try {
-        const data = await fetchJson(settings.jevEndpoint, init, JEV_TIMEOUT_MS, 'Jev');
+        const data = await fetchJson(cfg.jevEndpoint, init, JEV_TIMEOUT_MS, 'Jev');
         const answers = data?.answers ?? data;
         if (!answers || typeof answers !== 'object') throw new Error('Jev 응답 형식이 이상해요.');
         stats.jevCalls++;
@@ -234,13 +254,13 @@
     throw lastError;
   }
 
-  function embedConfig() {
-    const p = EMBED_PRESETS[settings.embedPreset] ?? EMBED_PRESETS.local;
-    const key = cleanKey(p.key === 'jev' ? (settings.embedKey || settings.jevKey) : settings.embedKey);
-    return { format: p.format, endpoint: settings.embedEndpoint || p.endpoint, model: settings.embedModel || p.model, key, needsKey: p.key === 'own' };
+  function embedConfig(cfg = settings) {
+    const p = EMBED_PRESETS[cfg.embedPreset] ?? EMBED_PRESETS.local;
+    const key = cleanKey(p.key === 'jev' ? (cfg.embedKey || cfg.jevKey) : cfg.embedKey);
+    return { format: p.format, endpoint: cfg.embedEndpoint || p.endpoint, model: cfg.embedModel || p.model, key, needsKey: p.key === 'own' };
   }
-  function embedProfile() {
-    const e = embedConfig();
+  function embedProfile(cfg = settings) {
+    const e = embedConfig(cfg);
     return e.format === 'local' ? `local:${LOCAL_DIMS}` : `${e.format}:${e.endpoint}:${e.model}`;
   }
   function normalize(v) {
@@ -262,8 +282,8 @@
     for (let i = 0; i < g.length - 1; i++) add(`g:${g.slice(i, i + 2)}`, 0.5);
     return normalize(v);
   }
-  async function embedTexts(texts, purpose) {
-    const e = embedConfig();
+  async function embedTexts(texts, purpose, cfg = settings) {
+    const e = embedConfig(cfg);
     if (e.format === 'local') return texts.map(hashEmbed);
     if (e.needsKey || e.key) { const kp = keyProblem(e.key, '임베딩'); if (kp) throw new Error(kp); }
     if (!e.endpoint || !e.model) throw new Error('임베딩 주소나 모델이 비어 있어요.');
@@ -873,7 +893,7 @@
   //  화면
   // ══════════════════════════════════════════════════════════════════════
 
-  const ui = { open: false, tab: 'home', progress: '', test: {}, bound: false, draft: null };
+  const ui = { open: false, tab: 'home', progress: '', test: {}, bound: false, draft: null, wiz: null, keepOpen: new Map(), saveTimer: null };
   const CSS = `
     :root{--a:#5b7cfa;--ok:#3fae7a;--warn:#e0a03a;--bad:#e0605a}
     *{box-sizing:border-box}
@@ -1033,22 +1053,24 @@
     ui.open = true;
     if (tab) ui.tab = tab;
     ui.draft = null;
-    if (!settings.jevKey) ui.tab = 'settings';
+    if (!settings.onboarded || !settings.jevKey) ui.wiz = ui.wiz ?? { step: 1, d: { ...settings } };
+    else if (!ui.wiz?.manual) ui.wiz = null;
     try { await refreshChat(); } catch (error) { setError('채팅 확인', error); }
     render();
   }
 
   function render() {
     const body = document.getElementById('bd');
-    const keep = body && body.dataset.tab === ui.tab;
+    const where = ui.wiz ? 'wiz' : ui.tab;
+    const keep = body && body.dataset.tab === where;
     const scroll = body ? body.scrollTop : 0;
     const tabs = [['home', '🏠 홈'], ['trace', '🔍 회상 기록'], ['settings', '⚙️ 설정'], ['tools', '🧰 도구'], ['debug', '🐞 디버그']];
-    const view = { home: renderHome, trace: renderTrace, settings: renderSettings, tools: renderTools, debug: renderDebug }[ui.tab] ?? renderHome;
+    const view = ui.wiz ? renderWizard : ({ home: renderHome, trace: renderTrace, settings: renderSettings, tools: renderTools, debug: renderDebug }[ui.tab] ?? renderHome);
     document.body.innerHTML = `<style>${CSS}</style>
       <div class="w">
         <div class="hd"><b>🧠 HypaJev</b><span class="sub">${escapeHtml([chatLabel.char, chatLabel.chat].filter(Boolean).join(' · ') || '채팅방을 열면 기억이 보여요')}</span><button class="x" data-act="close" aria-label="닫기">✕</button></div>
-        <div class="tabs">${tabs.map(([id, l]) => `<button class="tab${ui.tab === id ? ' on' : ''}" data-act="tab" data-tab="${id}">${l}</button>`).join('')}</div>
-        <div class="bd" id="bd" data-tab="${ui.tab}"><div class="in">${view()}</div></div>
+        ${ui.wiz ? '' : `<div class="tabs">${tabs.map(([id, l]) => `<button class="tab${ui.tab === id ? ' on' : ''}" data-act="tab" data-tab="${id}">${l}</button>`).join('')}</div>`}
+        <div class="bd" id="bd" data-tab="${where}"><div class="in">${view()}</div></div>
       </div>`;
     const nb = document.getElementById('bd');
     if (nb && keep) nb.scrollTop = scroll;
@@ -1083,9 +1105,92 @@
   const kpi = (v, label) => `<div class="card" style="margin:0"><div class="kpi">${v}</div><div class="small muted">${label}</div></div>`;
   const secs = (ms) => (ms >= 1000 ? `${(ms / 1000).toFixed(ms >= 10000 ? 0 : 1)}초` : `${ms}ms`);
 
+  // ── 설정 부품 (JevHypa와 같은 모양) ──
+
+  const opt = (field, value, cur, title, desc, badge) =>
+    `<button class="opt${cur === value ? ' on' : ''}" data-act="pick" data-field="${field}" data-value="${value}"><b>${escapeHtml(title)}${badge ? `<span class="badge">${escapeHtml(badge)}</span>` : ''}</b><span class="small muted">${escapeHtml(desc ?? '')}</span></button>`;
+  const sw = (field, on) => `<label class="sw"><input type="checkbox" data-field="${field}"${on ? ' checked' : ''}><span></span></label>`;
+  const field = (label, help, input) => `<div class="f"><div><label>${label}</label>${help ? `<div class="help">${help}</div>` : ''}</div><div>${input}</div></div>`;
+
+  /** 키 모양 확인. OpenRouter 키는 sk-or- 로 시작한다. */
+  function keyHint(d) {
+    const k = cleanKey(d.jevKey);
+    if (!k) return '';
+    const bad = keyProblem(k, 'Jev');
+    if (bad) return `<div class="help err">${escapeHtml(bad)}</div>`;
+    if (d.jevPreset === 'openrouter' && !/^sk-or-/.test(k)) return '<div class="help" style="color:var(--warn)">OpenRouter 키는 보통 sk-or- 로 시작해요. 다른 키를 넣은 건 아닌지 확인해 주세요.</div>';
+    return `<div class="help">${escapeHtml(k.slice(0, 8))}…${escapeHtml(k.slice(-4))} (${k.length}자)</div>`;
+  }
+
+  /** 모델 고르기: 프리셋의 모델 목록 + "직접 입력…". 실제 값은 아래 입력칸(data-field)에 있다. */
+  function modelPicker(fieldName, preset, value) {
+    const items = (preset.models ?? []).map(m => (typeof m === 'string' ? { id: m, label: m } : m));
+    const known = items.some(m => m.id === value);
+    const custom = !known || !items.length;
+    const options = items.map(m => `<option value="${escapeHtml(m.id)}"${m.id === value ? ' selected' : ''}>${escapeHtml(m.label)}${m.id === preset.model ? ' · 기본' : ''}${m.label !== m.id ? ` — ${escapeHtml(m.id)}` : ''}</option>`).join('');
+    return `${items.length ? `<select class="sel" data-model-for="${fieldName}">${options}<option value="__custom"${custom ? ' selected' : ''}>직접 입력…</option></select>` : ''}
+      <input class="inp" data-field="${fieldName}" placeholder="모델 이름 (예: ${escapeHtml(preset.model || 'vendor/model')})" value="${escapeHtml(value)}" style="${custom ? '' : 'display:none;'}${items.length ? 'margin-top:6px' : ''}">`;
+  }
+
+  /** 접는 칸: 펼치거나 접은 상태를 기억해서 다시 그려도 유지 */
+  const keepOpen = (key, def) => ` data-keep="${escapeHtml(key)}"${(ui.keepOpen.get(key) ?? def) ? ' open' : ''}`;
+
+  function jevFields(d) {
+    const p = JEV_PRESETS[d.jevPreset];
+    return `<div class="opts">${Object.entries(JEV_PRESETS).map(([k, v]) => opt('jevPreset', k, d.jevPreset, v.label, v.desc, v.badge)).join('')}</div>
+      <div class="f" style="border:none"><div><label>API 키</label>${p.keyUrl ? `<div class="help"><a href="${p.keyUrl}" target="_blank" rel="noopener">키 받는 곳 ↗</a></div>` : ''}</div>
+        <div><input class="inp" type="password" autocomplete="off" data-field="jevKey" placeholder="${escapeHtml(p.keyHint ?? 'API 키')}" value="${escapeHtml(d.jevKey)}">${keyHint(d)}</div></div>
+      <div class="f" style="border:none"><div><label>모델</label><div class="help">모르겠으면 기본 그대로 두세요.</div></div><div>${modelPicker('jevModel', p, d.jevModel)}</div></div>
+      <details${keepOpen('jev-addr', d.jevPreset === 'custom')}><summary>주소 (보통은 안 바꿔도 돼요)</summary>
+        <div class="f"><label>주소</label><input class="inp" data-field="jevEndpoint" value="${escapeHtml(d.jevEndpoint)}"></div>
+      </details>
+      <div class="row"><button class="btn" data-act="test-jev">연결 테스트</button>${testLine('jev')}</div>`;
+  }
+
+  function embedFields(d) {
+    const p = EMBED_PRESETS[d.embedPreset];
+    return `<div class="opts">${Object.entries(EMBED_PRESETS).map(([k, v]) => opt('embedPreset', k, d.embedPreset, v.label, v.desc, v.badge)).join('')}</div>
+      ${p.key === 'own' ? `<div class="f" style="border:none"><div><label>임베딩 API 키</label>${p.keyUrl ? `<div class="help"><a href="${p.keyUrl}" target="_blank" rel="noopener">키 받는 곳 ↗</a></div>` : ''}</div><input class="inp" type="password" autocomplete="off" data-field="embedKey" value="${escapeHtml(d.embedKey)}"></div>` : ''}
+      ${p.key === 'jev' ? '<div class="help" style="margin:8px 0">Jev에 넣은 OpenRouter 키를 같이 써요.</div>' : ''}
+      ${p.format !== 'local' ? `<div class="f" style="border:none"><div><label>모델</label><div class="help">모르겠으면 기본 그대로 두세요. 바꾸면 이 기기 색인을 다시 해요.</div></div><div>${modelPicker('embedModel', p, d.embedModel)}</div></div>` : ''}
+      ${p.format !== 'local' ? `<details${keepOpen('embed-addr', d.embedPreset === 'custom')}><summary>주소 (보통은 안 바꿔도 돼요)</summary>
+        <div class="f"><label>주소</label><input class="inp" data-field="embedEndpoint" value="${escapeHtml(d.embedEndpoint)}"></div>
+      </details>` : ''}
+      <div class="row"><button class="btn" data-act="test-embed">연결 테스트</button>${testLine('embed')}</div>`;
+  }
+
+  function testLine(which) {
+    const t = ui.test[which];
+    if (!t) return '';
+    if (t.running) return '<span class="muted small">확인 중…</span>';
+    if (t.warn) return `<span class="small" style="color:var(--warn)">⚠️ ${escapeHtml(t.msg)}</span>`;
+    return t.ok ? `<span class="ok small">✅ ${escapeHtml(t.msg)}</span>` : `<span class="err small">❌ ${escapeHtml(t.msg)}</span>`;
+  }
+
+  // ── 시작 안내 (3단계) ──
+  function renderWizard() {
+    const w = ui.wiz;
+    const d = w.d;
+    const steps = `<div class="steps">${[1, 2, 3].map(n => `<i class="${n <= w.step ? 'on' : ''}"></i>`).join('')}</div>`;
+    const nav = (back, next, label = '다음') => `<div class="row" style="justify-content:space-between;margin-top:16px">${back ? '<button class="btn" data-act="wiz-back">이전</button>' : '<span></span>'}<button class="btn p" data-act="${next}">${label}</button></div>`;
+    if (w.step === 1) {
+      return `${steps}<h3 style="margin:0 0 4px">1. Jev 연결</h3><p class="muted small" style="margin:0 0 12px">Jev는 글을 쓰지 않고 "이 대화 조각이 지금 필요해?"만 판단하는 아주 싼 모델이에요. 넣을 기억을 고르는 데 써요.</p>
+        <div class="card">${jevFields(d)}</div>${nav(false, 'wiz-next')}`;
+    }
+    if (w.step === 2) {
+      return `${steps}<h3 style="margin:0 0 4px">2. 임베딩 고르기</h3><p class="muted small" style="margin:0 0 12px">임베딩은 "뜻이 비슷한 대화"를 빠르게 찾는 데 써요. 단어가 달라도 같은 얘기면 찾아요. 모르겠으면 첫 번째를 고르세요.</p>
+        <div class="card">${embedFields(d)}</div>${nav(true, 'wiz-next')}`;
+    }
+    return `${steps}<h3 style="margin:0 0 4px">3. 이렇게 써요</h3><p class="muted small" style="margin:0 0 12px">HypaJev는 Risu가 보낸 원문은 건드리지 않고, 보내지 않은 이전 대화에서 필요한 부분만 찾아 넣어요.</p>
+      <div class="card small">토큰을 아끼려면 Risu 설정에서 <b>최대 컨텍스트</b>를 줄이거나, 프롬프트 템플릿의 <b>채팅 범위</b>를 최근 몇 개로 두세요. Risu 자체 메모리(하이파 · 수파)는 꺼 두세요.</div>
+      <div class="card small muted">이렇게 동작해요<br>· 최근 대화는 Risu가 원문 그대로 보내요.<br>· 그보다 오래된 대화는 보낼 때 조각내서 색인만 해요 (버리는 것 없음).<br>· 보낼 때마다 지금 필요한 조각을 Jev가 골라 원문 그대로 넣어요.<br>· 이미 긴 채팅이면 🧰 도구 › 지금 전부 색인을 한 번 누르세요.</div>
+      ${nav(true, 'wiz-finish', '시작하기')}`;
+  }
+
+  // ── 홈 · 회상 기록 ──
   function statusBanner(st) {
-    if (!settings.jevKey) return `<div class="banner bad"><div class="g"><b>Jev 키가 없어요</b><div class="small muted">설정에서 Jev 키와 임베딩을 고르면 바로 동작해요.</div></div><button class="btn p" data-act="tab" data-tab="settings">설정 열기</button></div>`;
-    if (!settings.enabled) return `<div class="banner warn"><div class="g"><b>꺼져 있어요</b><div class="small muted">요청을 건드리지 않아요.</div></div><button class="btn" data-act="toggle-enabled">켜기</button></div>`;
+    if (!settings.jevKey) return '<div class="banner bad"><div class="g"><b>Jev 키가 없어요</b><div class="small muted">시작 안내에서 키를 넣으면 바로 동작해요.</div></div><button class="btn p" data-act="wizard">시작 안내 열기</button></div>';
+    if (!settings.enabled) return '<div class="banner warn"><div class="g"><b>전체 꺼짐</b><div class="small muted">요청을 건드리지 않아요.</div></div><button class="btn" data-act="toggle-enabled">켜기</button></div>';
     if (!chatKey) return '<div class="banner warn"><div class="g"><b>채팅방을 열어 주세요</b></div></div>';
     if (stats.lastError && Date.now() - stats.lastErrorAt < 10 * 60 * 1000) return `<div class="banner bad"><div class="g"><b>최근 오류</b> <span class="small muted">${timeAgo(stats.lastErrorAt)}</span><div class="small err">${escapeHtml(stats.lastError)}</div><div class="small muted">오류가 나도 보내기는 멈추지 않아요.</div></div><button class="btn" data-act="tab" data-tab="settings">연결 확인</button></div>`;
     const left = st.sendable - st.indexedMsgs;
@@ -1115,51 +1220,102 @@
       <div class="card">${rows || '<span class="muted small">없음</span>'}</div>`;
   }
 
-  const field = (label, help, input) => `<div class="f"><div><label>${label}</label>${help ? `<div class="help">${help}</div>` : ''}</div><div>${input}</div></div>`;
-  const sw = (k, on) => `<label class="sw"><input type="checkbox" data-field="${k}"${on ? ' checked' : ''}><span></span></label>`;
-  const num = (d, k, min, max) => `<input class="inp" type="number" inputmode="numeric" min="${min}" max="${max}" data-field="${k}" value="${escapeHtml(d[k])}">`;
-  const txt = (d, k, ph = '', pw = false) => `<input class="inp" ${pw ? 'type="password" autocomplete="off"' : ''} data-field="${k}" placeholder="${escapeHtml(ph)}" value="${escapeHtml(d[k])}">`;
-  const sel = (d, k, opts) => `<select class="sel inp" data-field="${k}">${Object.entries(opts).map(([v, o]) => `<option value="${v}"${d[k] === v ? ' selected' : ''}>${escapeHtml(o.label ?? o)}</option>`).join('')}</select>`;
-  function testLine(which) {
-    const t = ui.test[which];
-    if (!t) return '';
-    if (t.running) return '<span class="muted small">확인 중…</span>';
-    return t.ok ? `<span class="ok small">✅ ${escapeHtml(t.msg)}</span>` : `<span class="err small">❌ ${escapeHtml(t.msg)}</span>`;
-  }
-
+  // ── 설정 ──
   function renderSettings() {
     const d = ui.draft ?? (ui.draft = { ...settings });
-    const jp = JEV_PRESETS[d.jevPreset] ?? JEV_PRESETS.typesafe;
-    const ep = EMBED_PRESETS[d.embedPreset] ?? EMBED_PRESETS.voyage;
-    return `<div class="sec">Jev 연결</div><div class="card">
-        ${field('어디서', jp.desc, sel(d, 'jevPreset', JEV_PRESETS))}
-        ${field('API 키', jp.keyUrl ? `<a href="${jp.keyUrl}" target="_blank" rel="noopener">키 받는 곳 ↗</a>` : '', txt(d, 'jevKey', 'API 키', true))}
-        ${field('모델', '모르겠으면 그대로 두세요.', txt(d, 'jevModel', jp.model))}
-        ${d.jevPreset === 'custom' ? field('주소', '', txt(d, 'jevEndpoint')) : ''}
-        <div class="row"><button class="btn" data-act="test-jev">연결 테스트</button>${testLine('jev')}</div>
-      </div>
-      <div class="sec">임베딩</div><div class="card">
-        ${field('어디서', ep.desc, sel(d, 'embedPreset', EMBED_PRESETS))}
-        ${ep.key === 'own' ? field('임베딩 API 키', ep.keyUrl ? `<a href="${ep.keyUrl}" target="_blank" rel="noopener">키 받는 곳 ↗</a>` : '', txt(d, 'embedKey', 'API 키', true)) : ''}
-        ${ep.format !== 'local' ? field('모델', '바꾸면 이 기기 벡터를 다시 계산해요.', txt(d, 'embedModel', ep.model)) : ''}
-        ${d.embedPreset === 'custom' || d.embedPreset === 'ollama' ? field('주소', '', txt(d, 'embedEndpoint', ep.endpoint)) : ''}
-        <div class="row"><button class="btn" data-act="test-embed">연결 테스트</button>${testLine('embed')}</div>
-      </div>
+    const num = (k, min, max) => `<input class="inp" type="number" inputmode="numeric" min="${min}" max="${max}" data-field="${k}" value="${escapeHtml(d[k])}">`;
+    return `<div class="sec">Jev 연결</div><div class="card">${jevFields(d)}</div>
+      <div class="sec">임베딩</div><div class="card">${embedFields(d)}</div>
       <div class="sec">기억 넣기</div><div class="card">
-        ${field('기억 예산 (토큰)', '한 번에 넣는 기억의 최대 크기. 0이면 안 넣어요.', num(d, 'budget', 0, 20000))}
-        ${field('Jev 후보 수', 'Jev가 매번 읽고 채점할 조각 수. 많으면 덜 놓치지만 Jev 비용이 늘어요.', num(d, 'candidates', 4, 80))}
-        ${field('앞뒤 조각', '고른 조각의 앞뒤를 몇 개씩 같이 넣을지. 맥락이 같이 와요.', num(d, 'neighbor', 0, 3))}
-        ${field('최근 흐름 (토큰)', 'Risu가 막 안 보낸 대화의 끝부분을 이만큼 늘 넣어요.', num(d, 'tailTokens', 0, 2000))}
-        ${field('보낼 때 색인 개수', '색인 안 된 메시지가 이보다 많으면 최근 것부터 이만큼만 하고 나머지는 다음에.', num(d, 'indexPerSend', 1, 5000))}
-        ${field('넣는 위치', '프롬프트에 [hypajev]를 써 두면 그 자리에 들어가요.', sel(d, 'injectMode', { last_user: '최신 입력 앞', system: '시스템 메시지로' }))}
-        ${field('메인 모델에게 하는 안내', '비우면 안 넣어요.', `<textarea class="inp ta" data-field="note" rows="2">${escapeHtml(d.note)}</textarea>`)}
+        <div class="help" style="margin-bottom:8px">Risu가 보낸 대화는 그대로 두고, 그보다 옛날 대화에서 찾아 넣어요.</div>
+        ${field('기억 예산 (토큰)', '한 번에 넣는 기억의 최대 크기. 크면 많이 기억, 작으면 토큰 절약. 0이면 안 넣어요.', num('budget', 0, 20000))}
+        ${field('Jev 후보 수', 'Jev가 매번 읽고 채점할 조각 수. 많으면 덜 놓치지만 Jev 비용이 늘어요.', num('candidates', 4, 80))}
+        ${field('앞뒤 조각', '고른 조각의 앞뒤를 몇 개씩 같이 넣을지. 맥락이 같이 와요.', num('neighbor', 0, 3))}
+        ${field('최근 흐름 (토큰)', 'Risu가 막 안 보낸 대화의 끝부분을 이만큼 늘 넣어요.', num('tailTokens', 0, 2000))}
+        ${field('보낼 때 색인 개수', '색인 안 된 메시지가 이보다 많으면 최근 것부터 이만큼만 하고 나머지는 다음에.', num('indexPerSend', 1, 5000))}
+      </div>
+      <div class="sec">넣는 방식</div><div class="card">
+        ${field('넣는 위치', '프롬프트에 [hypajev]를 써 두면 그 자리에 들어가요.', `<select class="sel" data-field="injectMode"><option value="last_user"${d.injectMode === 'last_user' ? ' selected' : ''}>최신 입력 앞</option><option value="system"${d.injectMode === 'system' ? ' selected' : ''}>시스템 메시지로</option></select>`)}
+        ${field('메인 모델에게 하는 안내', '기억 블록 맨 위에 붙는 한 줄. 비우면 안 넣어요.', `<textarea class="inp ta" data-field="note" rows="2">${escapeHtml(d.note)}</textarea>`)}
       </div>
       <div class="sec">화면</div><div class="card">
+        ${field('우측 상단 바로가기', '채팅 화면에 🧠 버튼을 띄워요.', sw('showButton', d.showButton))}
         ${field('전체 사용', '끄면 요청을 건드리지 않아요.', sw('enabled', d.enabled))}
-        ${field('우측 상단 바로가기', '🧠 버튼을 채팅 화면에 둬요.', sw('showButton', d.showButton))}
-      </div>`;
+      </div>
+      <div class="foot"><span id="save-state" class="small muted" style="margin-right:auto;align-self:center">바꾸면 바로 저장돼요</span><button class="btn" data-act="settings-reset">기본값으로</button><button class="btn" data-act="wizard">시작 안내 다시 보기</button></div>`;
   }
 
+  // ── 설정 자동 저장 ──
+  //  설정 탭에서 무엇이든 바꾸면 잠깐 뒤(입력 중이면 멈춘 뒤) 화면 전체를 읽어 저장한다. 탭을 옮기거나 창을 닫으면 바로 저장한다.
+  function setSaveState(text) {
+    const el = document.getElementById('save-state');
+    if (el) el.textContent = text;
+  }
+  function scheduleSettingsSave(delay = 500) {
+    if (ui.wiz || ui.tab !== 'settings') return;
+    ui.draft = readForm(ui.draft ?? settings);
+    setSaveState('저장 중…');
+    clearTimeout(ui.saveTimer);
+    ui.saveTimer = setTimeout(() => { void flushSettingsSave(); }, delay);
+  }
+  async function flushSettingsSave() {
+    clearTimeout(ui.saveTimer);
+    ui.saveTimer = null;
+    if (!ui.draft) return;
+    const before = embedProfile();
+    const draft = ui.draft;
+    try { await saveSettings(draft); } catch (error) { setSaveState('저장 실패'); toast(String(error?.message ?? error)); return; }
+    if (ui.draft === draft) ui.draft = { ...settings };
+    setSaveState('저장됨 ✓');
+    if (embedProfile() !== before) toast('임베딩 설정이 바뀌었어요. 다음에 보낼 때(또는 지금 전부 색인) 다시 색인해요.');
+  }
+  /** 화면에 있는 입력값을 초안에 반영한다. */
+  function readForm(base) {
+    const d = { ...base };
+    for (const el of document.querySelectorAll('[data-field]')) {
+      if (el.tagName === 'BUTTON') continue;
+      const k = el.dataset.field;
+      if (el.type === 'checkbox') d[k] = el.checked;
+      else if (el.type === 'number') d[k] = el.value === '' ? base[k] : Number(el.value);
+      else d[k] = el.value;
+    }
+    return d;
+  }
+  function currentDraft() {
+    if (ui.wiz) return (ui.wiz.d = readForm(ui.wiz.d));
+    if (ui.tab === 'settings') return (ui.draft = readForm(ui.draft ?? settings));
+    return settings;
+  }
+  function pickPreset(d, f, value) {
+    if (f === 'jevPreset') { const p = JEV_PRESETS[value]; return { ...d, jevPreset: value, jevEndpoint: p.endpoint, jevModel: p.model }; }
+    if (f === 'embedPreset') { const p = EMBED_PRESETS[value]; return { ...d, embedPreset: value, embedEndpoint: p.endpoint ?? '', embedModel: p.model ?? '' }; }
+    return { ...d, [f]: value };
+  }
+
+  /** 연결 테스트: 지금 화면의 값으로 확인한다. 저장된 설정은 건드리지 않는다. */
+  async function runTest(which) {
+    const d = sanitizeSettings(currentDraft());
+    ui.test[which] = { running: true };
+    render();
+    const started = Date.now();
+    try {
+      if (which === 'jev') {
+        const a = await callJev('[STORY]\n서진은 민우에게 토요일에 바다에 가자고 약속했다.', { t: { type: 'noul', instructions: 'Did 서진 make a promise about going to the sea?' } }, d);
+        const p = Number(a?.t?.noul ?? 0);
+        ui.test.jev = p > 0.5 ? { ok: true, msg: `연결됨 · ${Date.now() - started}ms · ${d.jevModel}` } : { warn: true, msg: `연결은 됐지만 판단이 이상해요 (${Math.round(p * 100)}%). 모델 이름을 확인해 보세요.` };
+      } else {
+        const [a, b, c] = await embedTexts(['토요일에 바다에 가기로 약속했다', '주말에 해변 가자고 했다', '검은 성의 기사단'], '연결 테스트', d);
+        const dt = (x, y) => { let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * y[i]; return s; };
+        const near = dt(a, b), far = dt(a, c);
+        ui.test.embed = near > far
+          ? { ok: true, msg: `연결됨 · ${Date.now() - started}ms · ${a.length}차원 · 비슷한 말 ${near.toFixed(2)} > 다른 말 ${far.toFixed(2)}` }
+          : { warn: true, msg: `연결은 됐지만 뜻 구분이 약해요 (비슷한 말 ${near.toFixed(2)}, 다른 말 ${far.toFixed(2)}). 다른 모델을 써 보세요.` };
+      }
+    } catch (error) { ui.test[which] = { ok: false, msg: String(error?.message ?? error) }; }
+    render();
+  }
+
+  // ── 도구 · 디버그 ──
   function renderTools() {
     const st = storageStats();
     const tool = (title, desc, act, label, danger) => `<div class="card row" style="justify-content:space-between"><div style="flex:1;min-width:200px"><b>${title}</b><div class="help">${desc}</div></div><button class="btn${danger ? ' d' : ''}" data-act="${act}"${act === 'index-all' && processing ? ' disabled' : ''}>${label}</button></div>`;
@@ -1184,63 +1340,84 @@
       ${debugLog.map(card).join('')}`;
   }
 
-  async function runTest(which) {
-    ui.test[which] = { running: true };
-    render();
-    const before = settings;
-    settings = sanitizeSettings(ui.draft ?? settings);
-    try {
-      if (which === 'jev') {
-        const a = await callJev('[USER]\nhello', { t: { type: 'noul', instructions: 'Is this a greeting?' } });
-        ui.test.jev = { ok: true, msg: `연결됨 (인사말일 확률 ${Math.round(Number(a?.t?.noul ?? 0) * 100)}%)` };
-      } else {
-        const [v] = await embedTexts(['연결 테스트'], '연결 테스트');
-        ui.test.embed = { ok: true, msg: `연결됨 (${v.length}칸)` };
-      }
-    } catch (error) { ui.test[which] = { ok: false, msg: String(error?.message ?? error) }; }
-    finally { settings = before; }
-    render();
-  }
-
-  let saveSettingsTimer = null;
-  function scheduleSettingsSave(ms = 300) {
-    clearTimeout(saveSettingsTimer);
-    saveSettingsTimer = setTimeout(async () => { try { await saveSettings(ui.draft); toast('저장했어요'); } catch (error) { toast(String(error?.message ?? error)); } }, ms);
-  }
-
-  function readField(el) {
-    const k = el.dataset.field;
-    if (!k) return;
-    ui.draft ??= { ...settings };
-    ui.draft[k] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value;
-    // 프리셋을 바꾸면 그 프리셋 기본 주소·모델로
-    if (k === 'jevPreset') { ui.draft.jevEndpoint = ''; ui.draft.jevModel = ''; }
-    if (k === 'embedPreset') { ui.draft.embedEndpoint = ''; ui.draft.embedModel = ''; }
-  }
-
+  // ── 이벤트 ──
   function bindOnce() {
     if (ui.bound) return;
     ui.bound = true;
     document.body.addEventListener('click', (e) => { void onClick(e); });
-    document.body.addEventListener('change', (e) => {
-      const el = e.target;
-      if (!el?.dataset?.field) return;
-      readField(el);
-      scheduleSettingsSave(el.tagName === 'SELECT' || el.type === 'checkbox' ? 0 : 300);
-      if (el.tagName === 'SELECT') setTimeout(render, 350);
-    });
-    document.body.addEventListener('input', (e) => { if (e.target?.dataset?.field && e.target.tagName !== 'SELECT' && e.target.type !== 'checkbox') { readField(e.target); scheduleSettingsSave(900); } });
+    document.body.addEventListener('change', (e) => { void onChange(e); });
+    // details의 toggle은 거품이 안 올라와서 잡는 단계에서 듣는다
+    document.body.addEventListener('toggle', (e) => { const k = e.target?.dataset?.keep; if (k) ui.keepOpen.set(k, e.target.open); }, true);
+    document.body.addEventListener('input', (e) => { if (e.target.dataset?.field && ui.tab === 'settings' && !ui.wiz) scheduleSettingsSave(800); });
+  }
+
+  async function onChange(e) {
+    const el = e.target;
+    if (el.dataset?.modelFor) {
+      // 목록에서 고르면 입력칸을 채우고 숨긴다. "직접 입력…"이면 입력칸을 보여 준다.
+      const input = el.parentElement?.querySelector(`[data-field="${el.dataset.modelFor}"]`);
+      if (!input) return;
+      if (el.value === '__custom') { input.style.display = ''; input.focus(); input.select?.(); }
+      else { input.value = el.value; input.style.display = 'none'; }
+      ui.test[el.dataset.modelFor === 'jevModel' ? 'jev' : 'embed'] = null;
+      if (ui.wiz) currentDraft(); else scheduleSettingsSave();
+      return;
+    }
+    if (el.dataset?.field) { if (ui.wiz) currentDraft(); else scheduleSettingsSave(); }
   }
 
   async function onClick(e) {
     const el = e.target.closest?.('[data-act]');
     if (!el) return;
     switch (el.dataset.act) {
-      case 'close': ui.open = false; await R.hideContainer(); return;
-      case 'tab': ui.tab = el.dataset.tab; ui.draft = null; render(); return;
-      case 'toggle-enabled': await saveSettings({ ...settings, enabled: !settings.enabled }); render(); return;
+      case 'close':
+        if (ui.tab === 'settings' && !ui.wiz) { ui.draft = readForm(ui.draft ?? settings); await flushSettingsSave(); }
+        ui.open = false;
+        await R.hideContainer();
+        return;
+      case 'tab':
+        if (ui.tab === 'settings' && el.dataset.tab !== 'settings' && !ui.wiz) { ui.draft = readForm(ui.draft ?? settings); await flushSettingsSave(); ui.draft = null; }
+        ui.tab = el.dataset.tab;
+        render();
+        return;
+      case 'pick': {
+        const next = pickPreset(currentDraft(), el.dataset.field, el.dataset.value);
+        if (ui.wiz) ui.wiz.d = next; else ui.draft = next;
+        ui.test[el.dataset.field === 'jevPreset' ? 'jev' : 'embed'] = null;
+        render();
+        if (!ui.wiz && ui.tab === 'settings') { setSaveState('저장 중…'); await flushSettingsSave(); }
+        return;
+      }
       case 'test-jev': await runTest('jev'); return;
       case 'test-embed': await runTest('embed'); return;
+      case 'wizard': ui.wiz = { step: 1, d: { ...settings }, manual: true }; render(); return;
+      case 'wiz-back': currentDraft(); ui.wiz.step--; render(); return;
+      case 'wiz-next': {
+        const d = currentDraft();
+        if (ui.wiz.step === 1 && !cleanKey(d.jevKey)) { toast('Jev API 키를 넣어 주세요.'); return; }
+        if (ui.wiz.step === 2 && EMBED_PRESETS[d.embedPreset]?.key === 'own' && !cleanKey(d.embedKey)) { toast('임베딩 API 키를 넣거나 다른 걸 골라 주세요.'); return; }
+        ui.wiz.step++;
+        render();
+        return;
+      }
+      case 'wiz-finish': {
+        const d = currentDraft();
+        await saveSettings({ ...d, onboarded: true });
+        ui.wiz = null;
+        ui.tab = 'home';
+        render();
+        toast('준비됐어요. 이미 긴 채팅이면 🧰 도구 › 지금 전부 색인을 눌러 주세요.');
+        return;
+      }
+      case 'settings-reset':
+        if (await confirmDialog('키는 그대로 두고 나머지 설정을 기본값으로 돌릴까요?', '돌리기')) {
+          const d = currentDraft();
+          ui.draft = { ...DEFAULT_SETTINGS, jevKey: d.jevKey, embedKey: d.embedKey, onboarded: true };
+          render();
+          await flushSettingsSave();
+        }
+        return;
+      case 'toggle-enabled': await saveSettings({ ...settings, enabled: !settings.enabled }); render(); return;
       case 'debug-clear': debugLog.length = 0; render(); return;
       case 'reread': try { await refreshChat(); toast('다시 읽었어요.'); } catch (error) { toast(String(error?.message ?? error)); } render(); return;
       case 'index-all': {
@@ -1302,7 +1479,7 @@
   if (globalThis.__HYPAJEV_TEST__) {
     globalThis.__HYPAJEV_TEST__.x = {
       beforeRequestHandler, afterRequestHandler, indexAll, ensureChat, refreshChat, flushVectors, saveSettings,
-      chunkText, overlapStart, chatEntries, storageStats, recall, toSigns, packSigns, unpackSigns, simSigns, renderHome, renderTrace, renderSettings, renderTools, renderDebug,
+      chunkText, overlapStart, chatEntries, storageStats, recall, readForm, renderWizard, runTest, toSigns, packSigns, unpackSigns, simSigns, renderHome, renderTrace, renderSettings, renderTools, renderDebug,
       getSettings: () => settings, getTimeline: () => timeline, getChunks: () => chunks, getLastRecall: () => lastRecall, debugLog: () => debugLog, ui,
       waitJob: () => job ?? Promise.resolve(),
     };
