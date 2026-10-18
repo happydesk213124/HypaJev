@@ -1,7 +1,7 @@
 //@name hypajev
 //@display-name HypaJev
 //@api 3.0
-//@version 0.0.2
+//@version 0.0.3
 //@update-url https://raw.githubusercontent.com/happydesk213124/HypaJev/main/hypajev.js
 //@arg jev_api_key string (선택) Jev API 키. 🧠 HypaJev 화면의 설정에서 넣어도 됩니다.
 
@@ -128,6 +128,9 @@
       .replace(/<\/(div|p|li|tr|h\d)>/gi, '\n')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\{\{[^}]*\}\}/g, ' ')
+      // 삽화 · 에셋 태그([[@inray::…::그림.webp::1024::1024]] 같은 [[…::…]])와 마크다운 그림은 기억에서 뺀다 (Risu는 화면에서만 그림으로 바꾼다)
+      .replace(/\[\[[^[\]\n]{0,400}?::[^[\]\n]{0,1000}?\]\]/g, ' ')
+      .replace(/!\[[^\]\n]{0,200}\]\([^)\n]{0,1000}\)/g, ' ')
       .replace(/[ \t]+/g, ' ')
       .replace(/ *\n */g, '\n')
       .replace(/\n{2,}/g, '\n')
@@ -875,7 +878,8 @@
     identityCache = null;
     const id = await readChatIdentity();
     if (!id) return false;
-    if (id.key !== chatKey) { chatKey = ''; return ensureChat(); }
+    // 다른 채팅이면 처음부터 연다. 방금 읽은 신원 캐시에는 채팅 본문이 없어서 지워야 원본을 다시 읽는다
+    if (id.key !== chatKey) { chatKey = ''; identityCache = null; return ensureChat(); }
     chatLabel = { char: id.char, chat: id.chat };
     const fresh = rawTimeline(id.chatObj);
     if (fresh.length && (fresh.length !== timeline.length || fresh.some((m, i) => m.key !== timeline[i]?.key))) { timeline = fresh; rebuildChunks(); }
